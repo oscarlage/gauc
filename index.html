@@ -49,8 +49,6 @@
 
   <script>
 	// Import the functions you need from the SDKs you need
-	import { initializeApp } from "firebase/app";
-	import { getAnalytics } from "firebase/analytics";
 	// TODO: Add SDKs for Firebase products that you want to use
 	// https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -68,71 +66,72 @@
 	};
 
 	// Initialize Firebase
-	const app = initializeApp(firebaseConfig);
-	const analytics = getAnalytics(app);
-    // Inicializa mapa
-    var map = L.map('map').setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 19,
-      minZoom: 2
-    }).addTo(map);
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-    // Carregar pontos existentes do banco
-    database.ref('pontos').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        // Remove marcadores antigos
-        map.eachLayer((layer) => {
-          if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-          }
-        });
+  // Inicializa mapa
+  var map = L.map('map').setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19,
+    minZoom: 2
+  }).addTo(map);
 
-        // Adiciona todos os marcadores
-        Object.keys(data).forEach((key) => {
-          const ponto = data[key];
-          const content = `<div style="text-align:center;">
-            ${ponto.foto ? `<img src="${ponto.foto}" style="width:80px;height:80px;border-radius:50%;margin-bottom:5px;">` : ''}
-            <strong>${ponto.nome}</strong>
-          </div>`;
-          L.marker([ponto.lat, ponto.lng]).addTo(map).bindPopup(content);
-        });
-      }
-    });
-
-    // Clique no mapa para adicionar ponto
-    map.on('click', function(e) {
-      var latlng = e.latlng;
-      var formHtml = `
-        <div class="popup-form">
-          <label>Nome:</label><br>
-          <input type="text" id="nomeAmigo" placeholder="Nome do amigo"><br>
-          <label>URL da foto (opcional):</label><br>
-          <input type="text" id="fotoAmigo" placeholder="https://..."><br>
-          <button onclick="salvarAmigo(${latlng.lat}, ${latlng.lng})">Salvar</button>
-        </div>
-      `;
-      L.popup()
-        .setLatLng(latlng)
-        .setContent(formHtml)
-        .openOn(map);
-    });
-
-    // Salvar ponto no Firebase
-    function salvarAmigo(lat, lng) {
-      var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
-      var foto = document.getElementById('fotoAmigo').value.trim();
-
-      database.ref('pontos').push({
-        nome: nome,
-        foto: foto,
-        lat: lat,
-        lng: lng
+  // Carrega pontos existentes do banco
+  database.ref('pontos').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      // Remove marcadores antigos
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          map.removeLayer(layer);
+        }
       });
 
-      map.closePopup();
+      // Adiciona todos os marcadores
+      Object.keys(data).forEach((key) => {
+        const ponto = data[key];
+        const content = `<div style="text-align:center;">
+          ${ponto.foto ? `<img src="${ponto.foto}" style="width:80px;height:80px;border-radius:50%;margin-bottom:5px;">` : ''}
+          <strong>${ponto.nome}</strong>
+        </div>`;
+        L.marker([ponto.lat, ponto.lng]).addTo(map).bindPopup(content);
+      });
     }
-  </script>
+  });
+
+  // Clique no mapa para adicionar ponto
+  map.on('click', function(e) {
+    var latlng = e.latlng;
+    var formHtml = `
+      <div class="popup-form">
+        <label>Nome:</label><br>
+        <input type="text" id="nomeAmigo" placeholder="Nome do amigo"><br>
+        <label>URL da foto (opcional):</label><br>
+        <input type="text" id="fotoAmigo" placeholder="https://..."><br>
+        <button onclick="salvarAmigo(${latlng.lat}, ${latlng.lng})">Salvar</button>
+      </div>
+    `;
+    L.popup()
+      .setLatLng(latlng)
+      .setContent(formHtml)
+      .openOn(map);
+  });
+
+  // Salvar ponto no Firebase
+  function salvarAmigo(lat, lng) {
+    var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
+    var foto = document.getElementById('fotoAmigo').value.trim();
+
+    database.ref('pontos').push({
+      nome: nome,
+      foto: foto,
+      lat: lat,
+      lng: lng
+    });
+
+    map.closePopup();
+  }
+</script>
 </body>
 </html>
