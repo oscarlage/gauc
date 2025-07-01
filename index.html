@@ -40,7 +40,7 @@
 <body>
   <div id="map"></div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   
@@ -48,90 +48,84 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <script>
-	// Import the functions you need from the SDKs you need
-	// TODO: Add SDKs for Firebase products that you want to use
-	// https://firebase.google.com/docs/web/setup#available-libraries
+    // Seu firebaseConfig
+    const firebaseConfig = {
+      apiKey: "AIzaSyAtQXVg3s8Q9VZUwpgXkckgQIItILJ_OBo",
+      authDomain: "gauc-87aea.firebaseapp.com",
+      databaseURL: "https://gauc-87aea-default-rtdb.firebaseio.com",
+      projectId: "gauc-87aea",
+      storageBucket: "gauc-87aea.appspot.com",
+      messagingSenderId: "919739463848",
+      appId: "1:919739463848:web:7854bb8c160d0f1d4faa9d",
+      measurementId: "G-ES2CRGQLFP"
+    };
 
-	// Your web app's Firebase configuration
-	// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-	const firebaseConfig = {
-	  apiKey: "AIzaSyAtQXVg3s8Q9VZUwpgXkckgQIItILJ_OBo",
-	  authDomain: "gauc-87aea.firebaseapp.com",
-	  databaseURL: "https://gauc-87aea-default-rtdb.firebaseio.com",
-	  projectId: "gauc-87aea",
-	  storageBucket: "gauc-87aea.firebasestorage.app",
-	  messagingSenderId: "919739463848",
-	  appId: "1:919739463848:web:7854bb8c160d0f1d4faa9d",
-	  measurementId: "G-ES2CRGQLFP"
-	};
+    // Inicializa Firebase compat
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-	// Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
+    // Inicializa mapa
+    var map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+      minZoom: 2
+    }).addTo(map);
 
-  // Inicializa mapa
-  var map = L.map('map').setView([20, 0], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 19,
-    minZoom: 2
-  }).addTo(map);
-
-  // Carrega pontos existentes do banco
-  database.ref('pontos').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      // Remove marcadores antigos
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Marker) {
-          map.removeLayer(layer);
-        }
-      });
-
-      // Adiciona todos os marcadores
-      Object.keys(data).forEach((key) => {
-        const ponto = data[key];
-        const content = `<div style="text-align:center;">
-          ${ponto.foto ? `<img src="${ponto.foto}" style="width:80px;height:80px;border-radius:50%;margin-bottom:5px;">` : ''}
-          <strong>${ponto.nome}</strong>
-        </div>`;
-        L.marker([ponto.lat, ponto.lng]).addTo(map).bindPopup(content);
-      });
-    }
-  });
-
-  // Clique no mapa para adicionar ponto
-  map.on('click', function(e) {
-    var latlng = e.latlng;
-    var formHtml = `
-      <div class="popup-form">
-        <label>Nome:</label><br>
-        <input type="text" id="nomeAmigo" placeholder="Nome do amigo"><br>
-        <label>URL da foto (opcional):</label><br>
-        <input type="text" id="fotoAmigo" placeholder="https://..."><br>
-        <button onclick="salvarAmigo(${latlng.lat}, ${latlng.lng})">Salvar</button>
-      </div>
-    `;
-    L.popup()
-      .setLatLng(latlng)
-      .setContent(formHtml)
-      .openOn(map);
-  });
-
-  // Salvar ponto no Firebase
-  function salvarAmigo(lat, lng) {
-    var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
-    var foto = document.getElementById('fotoAmigo').value.trim();
-
-    database.ref('pontos').push({
-      nome: nome,
-      foto: foto,
-      lat: lat,
-      lng: lng
+    // Carrega pontos do banco
+    database.ref('pontos').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Remove marcadores antigos
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+          }
+        });
+        // Adiciona marcadores
+        Object.keys(data).forEach((key) => {
+          const ponto = data[key];
+          const content = `<div style="text-align:center;">
+            ${ponto.foto ? `<img src="${ponto.foto}" style="width:80px;height:80px;border-radius:50%;margin-bottom:5px;">` : ''}
+            <strong>${ponto.nome}</strong>
+          </div>`;
+          L.marker([ponto.lat, ponto.lng]).addTo(map).bindPopup(content);
+        });
+      }
     });
 
-    map.closePopup();
-  }
-</script>
+    // Clique no mapa para adicionar ponto
+    map.on('click', function(e) {
+      var latlng = e.latlng;
+      var formHtml = `
+        <div class="popup-form">
+          <label>Nome:</label><br>
+          <input type="text" id="nomeAmigo" placeholder="Nome do amigo"><br>
+          <label>URL da foto (opcional):</label><br>
+          <input type="text" id="fotoAmigo" placeholder="https://..."><br>
+          <button onclick="salvarAmigo(${latlng.lat}, ${latlng.lng})">Salvar</button>
+        </div>
+      `;
+      L.popup()
+        .setLatLng(latlng)
+        .setContent(formHtml)
+        .openOn(map);
+    });
+
+    // Salvar ponto no Firebase
+    function salvarAmigo(lat, lng) {
+      var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
+      var foto = document.getElementById('fotoAmigo').value.trim();
+
+      database.ref('pontos').push({
+        nome: nome,
+        foto: foto,
+        lat: lat,
+        lng: lng
+      });
+
+      map.closePopup();
+    }
+  </script>
 </body>
 </html>
