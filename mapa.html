@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Mapa de Amigos Interativo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    .popup-form {
+      font-size: 14px;
+    }
+    .popup-form input {
+      width: 95%;
+      margin-bottom: 5px;
+      padding: 4px;
+    }
+    .popup-form button {
+      width: 100%;
+      padding: 5px;
+      background: #0078A8;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    var map = L.map('map').setView([20, 0], 2);
+
+    // Camada de tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+      minZoom: 2
+    }).addTo(map);
+
+    // Função ao clicar no mapa
+    map.on('click', function(e) {
+      var latlng = e.latlng;
+
+      // Formulário HTML
+      var formHtml = `
+        <div class="popup-form">
+          <label>Nome:</label><br>
+          <input type="text" id="nomeAmigo" placeholder="Nome do amigo"><br>
+          <label>URL da foto (opcional):</label><br>
+          <input type="text" id="fotoAmigo" placeholder="https://..."><br>
+          <button onclick="salvarAmigo(${latlng.lat}, ${latlng.lng})">Salvar</button>
+        </div>
+      `;
+
+      // Abre popup com formulário
+      L.popup()
+        .setLatLng(latlng)
+        .setContent(formHtml)
+        .openOn(map);
+    });
+
+    // Função para salvar o marcador
+    function salvarAmigo(lat, lng) {
+      var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
+      var foto = document.getElementById('fotoAmigo').value.trim();
+
+      // Cria conteúdo do popup do marcador
+      var content = `<div style="text-align:center;">
+        ${foto ? `<img src="${foto}" style="width:80px;height:80px;border-radius:50%;margin-bottom:5px;">` : ''}
+        <strong>${nome}</strong>
+      </div>`;
+
+      // Adiciona marcador
+      L.marker([lat, lng]).addTo(map)
+        .bindPopup(content);
+
+      // Fecha o formulário
+      map.closePopup();
+    }
+  </script>
+</body>
+</html>
