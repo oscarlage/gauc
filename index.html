@@ -36,6 +36,13 @@
       cursor: pointer;
       margin-top: 4px;
     }
+    /* Estilo dos ícones coloridos */
+    .custom-marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #333;
+    }
   </style>
 </head>
 <body>
@@ -49,7 +56,6 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <script>
-    // Seu firebaseConfig
     const firebaseConfig = {
       apiKey: "AIzaSyAtQXVg3s8Q9VZUwpgXkckgQIItILJ_OBo",
       authDomain: "gauc-87aea.firebaseapp.com",
@@ -61,11 +67,9 @@
       measurementId: "G-ES2CRGQLFP"
     };
 
-    // Inicializa Firebase compat
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Inicializa mapa
     var map = L.map('map').setView([20, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -85,20 +89,27 @@
       });
 
       if (data) {
-        // Adiciona marcadores
         Object.keys(data).forEach((key) => {
           const ponto = data[key];
+          const color = ponto.cor || '#3388ff';
+
+          const icon = L.divIcon({
+            className: '',
+            html: `<div class="custom-marker" style="background:${color};"></div>`,
+            iconSize: [20, 20]
+          });
+
           const content = `<div style="text-align:center;">
             ${ponto.foto ? `<img src="${ponto.foto}" style="width:80px;height:80px;border-radius:50%;margin-bottom:5px;">` : ''}
             <strong>${ponto.nome}</strong><br>
             <button onclick="removerPonto('${key}')">🗑️ Remover</button>
           </div>`;
-          L.marker([ponto.lat, ponto.lng]).addTo(map).bindPopup(content);
+
+          L.marker([ponto.lat, ponto.lng], { icon }).addTo(map).bindPopup(content);
         });
       }
     });
 
-    // Clique no mapa para adicionar ponto
     map.on('click', function(e) {
       var latlng = e.latlng;
       var formHtml = `
@@ -116,22 +127,24 @@
         .openOn(map);
     });
 
-    // Salvar ponto no Firebase
     function salvarAmigo(lat, lng) {
       var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
       var foto = document.getElementById('fotoAmigo').value.trim();
+
+      // Gera cor aleatória
+      var cor = '#' + Math.floor(Math.random()*16777215).toString(16);
 
       database.ref('pontos').push({
         nome: nome,
         foto: foto,
         lat: lat,
-        lng: lng
+        lng: lng,
+        cor: cor
       });
 
       map.closePopup();
     }
 
-    // Função para remover ponto do Firebase
     function removerPonto(id) {
       if (confirm("Tem certeza que deseja remover este ponto?")) {
         database.ref('pontos').child(id).remove();
