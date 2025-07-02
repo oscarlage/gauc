@@ -17,7 +17,15 @@
     }
     #map {
       width: 100%;
-      height: 100%;
+      height: calc(100% - 40px);
+    }
+    #contador {
+      height: 40px;
+      background: #0078A8;
+      color: white;
+      text-align: center;
+      line-height: 40px;
+      font-weight: bold;
     }
     .popup-form {
       font-size: 14px;
@@ -36,7 +44,6 @@
       cursor: pointer;
       margin-top: 4px;
     }
-    /* Estilo dos ícones coloridos */
     .custom-marker {
       width: 20px;
       height: 20px;
@@ -46,6 +53,7 @@
   </style>
 </head>
 <body>
+  <div id="contador">Carregando pontos...</div>
   <div id="map"></div>
 
   <!-- Firebase compat SDK -->
@@ -80,6 +88,15 @@
     // Carrega pontos do banco
     database.ref('pontos').on('value', (snapshot) => {
       const data = snapshot.val();
+
+      // Atualiza contador
+      const contadorDiv = document.getElementById('contador');
+      if (data) {
+        const total = Object.keys(data).length;
+        contadorDiv.textContent = `Total de pontos cadastrados: ${total}`;
+      } else {
+        contadorDiv.textContent = "Nenhum ponto cadastrado ainda.";
+      }
 
       // Remove marcadores antigos
       map.eachLayer((layer) => {
@@ -130,8 +147,6 @@
     function salvarAmigo(lat, lng) {
       var nome = document.getElementById('nomeAmigo').value || "Amigo sem nome";
       var foto = document.getElementById('fotoAmigo').value.trim();
-
-      // Gera cor aleatória
       var cor = '#' + Math.floor(Math.random()*16777215).toString(16);
 
       database.ref('pontos').push({
