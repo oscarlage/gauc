@@ -133,7 +133,7 @@
           const marker = L.marker([ponto.lat, ponto.lng], { icon }).addTo(map).bindPopup(content);
 
           const tooltip = marker.bindTooltip(ponto.nome, {
-            permanent: map.getZoom() >= 4,
+            permanent: map.getZoom() >= 8,
             direction: "top",
             offset: [0, -10],
             className: "tooltip-nome"
@@ -148,7 +148,7 @@
     map.on('zoomend', () => {
       const zoom = map.getZoom();
       marcadores.forEach(({ marker }) => {
-        if (zoom >= 4) {
+        if (zoom >= 8) {
           marker.openTooltip();
         } else {
           marker.closeTooltip();
