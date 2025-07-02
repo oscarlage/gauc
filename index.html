@@ -104,7 +104,7 @@
       const contadorDiv = document.getElementById('contador');
       if (data) {
         const total = Object.keys(data).length;
-        contadorDiv.textContent = `Total de pontos cadastrados: ${total}`;
+        contadorDiv.textContent = `Total de Amigos Cadastrados: ${total}`;
       } else {
         contadorDiv.textContent = "Nenhum ponto cadastrado ainda.";
       }
@@ -133,7 +133,7 @@
           const marker = L.marker([ponto.lat, ponto.lng], { icon }).addTo(map).bindPopup(content);
 
           const tooltip = marker.bindTooltip(ponto.nome, {
-            permanent: map.getZoom() >= 7,
+            permanent: map.getZoom() >= 4,
             direction: "top",
             offset: [0, -10],
             className: "tooltip-nome"
@@ -148,7 +148,7 @@
     map.on('zoomend', () => {
       const zoom = map.getZoom();
       marcadores.forEach(({ marker }) => {
-        if (zoom >= 7) {
+        if (zoom >= 4) {
           marker.openTooltip();
         } else {
           marker.closeTooltip();
